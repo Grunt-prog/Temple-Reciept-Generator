@@ -1,0 +1,49 @@
+name: temple_donation_receipt
+description: Donation Receipt Generator for Sri Abhaya Anjaneya Swamy Devasthanam
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  pdf: ^3.10.8
+  printing: ^5.12.0
+  path_provider: ^2.1.2
+  share_plus: ^7.2.2
+  intl: 0.20.2
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/fonts/
+
+  fonts:
+    - family: Cinzel
+      fonts:
+        - asset: assets/fonts/Cinzel-Bold.ttf
+          weight: 700
+    - family: LibreBaskerville
+      fonts:
+        - asset: assets/fonts/LibreBaskerville-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/LibreBaskerville-Bold.ttf
+          weight: 700
+    - family: NotoSerifTelugu
+      fonts:
+        - asset: assets/fonts/NotoSerifTelugu-Regular.ttf
+          weight: 400
