@@ -30,7 +30,7 @@ class PdfLayoutConstants {
   // ────────────────────────────────────────────────────────────────────────
   // BODY PARAGRAPH
   // ────────────────────────────────────────────────────────────────────────
-  static const double bodyX     = 135;   // imgX — left margin of paragraph
+  static const double bodyX     = 145;   // imgX — left margin of paragraph
   static const double bodyY     = 894;   // imgY — top of paragraph
   // Right margin mirrors bodyX (symmetric). Effective width = page - 2*bodyX scaled.
 

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../services/number_to_words.dart';
 import '../services/pdf_service.dart';
@@ -194,12 +194,9 @@ class _FormScreenState extends State<FormScreen> {
       final savedFile = await _savePdfFile(pdfBytes, fileName);
 
       if (savedFile != null) {
-        _showSuccess('PDF saved: $fileName');
-        // Show share dialog to open with any app
-        await Share.shareXFiles(
-          [XFile(savedFile.path)],
-          text: 'Donation Receipt',
-        );
+        _showSuccess('Opening Receipt...');
+        // Open PDF directly with default viewer
+        await OpenFile.open(savedFile.path);
       }
     } catch (e) {
       _showError('Error generating PDF: $e');
