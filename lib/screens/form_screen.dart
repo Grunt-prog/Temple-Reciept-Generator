@@ -1,14 +1,14 @@
-// form_screen.dart
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../services/number_to_words.dart';
 import '../services/pdf_service.dart';
 import '../theme/app_theme.dart';
-import 'preview_screen.dart';
 
 class FormScreen extends StatefulWidget {
   const FormScreen({super.key});
@@ -189,15 +189,18 @@ class _FormScreenState extends State<FormScreen> {
 
       if (!mounted) return;
 
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => PreviewScreen(
-            pdfBytes: pdfBytes,
-            receiptNo: _receiptNoCtrl.text.trim(),
-            donorName: _donorNameCtrl.text.trim(),
-          ),
-        ),
-      );
+      // Save PDF to device
+      final fileName = 'Receipt_${_receiptNoCtrl.text.trim()}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final savedFile = await _savePdfFile(pdfBytes, fileName);
+
+      if (savedFile != null) {
+        _showSuccess('PDF saved: $fileName');
+        // Show share dialog to open with any app
+        await Share.shareXFiles(
+          [XFile(savedFile.path)],
+          text: 'Donation Receipt',
+        );
+      }
     } catch (e) {
       _showError('Error generating PDF: $e');
     } finally {
@@ -205,6 +208,39 @@ class _FormScreenState extends State<FormScreen> {
         setState(() => _isGenerating = false);
       }
     }
+  }
+
+  // ── Save PDF File ────────────────────────────────────────────────────────
+  Future<File?> _savePdfFile(List<int> pdfBytes, String fileName) async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final pdfPath = File('${directory.path}/$fileName');
+      await pdfPath.writeAsBytes(pdfBytes);
+      return pdfPath;
+    } catch (e) {
+      _showError('Error saving PDF: $e');
+      return null;
+    }
+  }
+
+  // ── Success Snackbar ─────────────────────────────────────────────────────
+  void _showSuccess(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style: GoogleFonts.libreBaskerville(
+            color: AppTheme.darkBrown,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: AppTheme.gold,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
   }
 
   // ── UI ──────────────────────────────────────────────────────────────────
