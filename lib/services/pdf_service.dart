@@ -8,49 +8,39 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../constants/template_base64.dart';
+import '../constants/pdf_layout_constants.dart';
 
-// ── Colours ─────────────────────────────────────────────────────────────────
-const _maroon = PdfColor.fromInt(0xFF6B1A1A);
+// ── Colours ──────────────────────────────────────────────────────────────────
+const _maroon    = PdfColor.fromInt(0xFF6B1A1A);
 const _darkBrown = PdfColor.fromInt(0xFF3D2200);
 
 class PdfService {
-  // ── Static caches ────────────────────────────────────────────────────────
+  // ── Static caches ─────────────────────────────────────────────────────────
   static pw.MemoryImage? _cachedTemplate;
+  static pw.Font?        _cachedLibre;
+  static pw.Font?        _cachedLibreBold;
+  static pw.Font?        _cachedTelugu;
 
-  static pw.Font? _cachedLibre;
-  static pw.Font? _cachedLibreBold;
-  static pw.Font? _cachedTelugu;
-
-  // ── Load Template ────────────────────────────────────────────────────────
+  // ── Load Template ─────────────────────────────────────────────────────────
   static pw.MemoryImage _getTemplate() {
-    _cachedTemplate ??=
-        pw.MemoryImage(base64Decode(templeTemplateBase64));
-
+    _cachedTemplate ??= pw.MemoryImage(base64Decode(templeTemplateBase64));
     return _cachedTemplate!;
   }
 
-  // ── Load Fonts ───────────────────────────────────────────────────────────
+  // ── Load Fonts ────────────────────────────────────────────────────────────
   static Future<void> _loadFonts() async {
     if (_cachedLibre != null) return;
 
-    final regular = await rootBundle.load(
-      'assets/fonts/LibreBaskerville-Regular.ttf',
-    );
+    final regular = await rootBundle.load('assets/fonts/LibreBaskerville-Regular.ttf');
+    final bold    = await rootBundle.load('assets/fonts/LibreBaskerville-Bold.ttf');
+    final telugu  = await rootBundle.load('assets/fonts/NotoSerifTelugu-Regular.ttf');
 
-    final bold = await rootBundle.load(
-      'assets/fonts/LibreBaskerville-Bold.ttf',
-    );
-
-    final telugu = await rootBundle.load(
-      'assets/fonts/NotoSerifTelugu-Regular.ttf',
-    );
-
-    _cachedLibre = pw.Font.ttf(regular);
+    _cachedLibre     = pw.Font.ttf(regular);
     _cachedLibreBold = pw.Font.ttf(bold);
-    _cachedTelugu = pw.Font.ttf(telugu);
+    _cachedTelugu    = pw.Font.ttf(telugu);
   }
 
-  // ── Generate Receipt ─────────────────────────────────────────────────────
+  // ── Generate Receipt ──────────────────────────────────────────────────────
   static Future<Uint8List> generateReceipt({
     required String receiptNo,
     required String date,
@@ -66,35 +56,31 @@ class PdfService {
   }) async {
     await _loadFonts();
 
-    final templateImage = _getTemplate();
-
     final pdf = pw.Document();
-
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
         build: (context) => _buildPage(
-          templateImage: templateImage,
-          receiptNo: receiptNo,
-          date: date,
-          donorTitle: donorTitle,
-          donorName: donorName,
-          gothram: gothram,
-          district: district,
-          address: address,
+          templateImage: _getTemplate(),
+          receiptNo:     receiptNo,
+          date:          date,
+          donorTitle:    donorTitle,
+          donorName:     donorName,
+          gothram:       gothram,
+          district:      district,
+          address:       address,
           amountFigures: amountFigures,
-          amountWords: amountWords,
+          amountWords:   amountWords,
           paymentMethod: paymentMethod,
-          donationType: donationType,
+          donationType:  donationType,
         ),
       ),
     );
-
     return pdf.save();
   }
 
-  // ── Build PDF Page ───────────────────────────────────────────────────────
+  // ── Build PDF Page ────────────────────────────────────────────────────────
   static pw.Widget _buildPage({
     required pw.MemoryImage templateImage,
     required String receiptNo,
@@ -109,216 +95,152 @@ class PdfService {
     required String paymentMethod,
     required String donationType,
   }) {
-    final pageWidth = PdfPageFormat.a4.width;
+    final pageWidth  = PdfPageFormat.a4.width;
     final pageHeight = PdfPageFormat.a4.height;
 
-    // ── Coordinate mapping ────────────────────────────────────────────────
-    double px(double imgX) => imgX * (pageWidth / 1024);
+    // ── Coordinate converters (image px → PDF points, top-based) ────────────
+    double px(double imgX) => imgX * (pageWidth  / PdfLayoutConstants.refWidth);
+    double py(double imgY) => imgY * (pageHeight / PdfLayoutConstants.refHeight);
 
-    double py(double imgY) =>
-        pageHeight - imgY * (pageHeight / 1536);
-
-    // ── Styles ────────────────────────────────────────────────────────────
+    // ── Text styles (all driven by constants) ────────────────────────────────
     pw.TextStyle normal(double size) => pw.TextStyle(
-          font: _cachedLibre!,
-          fontSize: size,
-          color: _darkBrown,
-          height: 1.35,
-        );
+      font:      _cachedLibre!,
+      fontSize:  size,
+      color:     _darkBrown,
+      height:    PdfLayoutConstants.bodyLineHeight,
+    );
 
     pw.TextStyle bold(double size) => pw.TextStyle(
-          font: _cachedLibreBold!,
-          fontSize: size,
-          color: _darkBrown,
-          height: 1.35,
-        );
+      font:      _cachedLibreBold!,
+      fontSize:  size,
+      color:     _darkBrown,
+      height:    PdfLayoutConstants.bodyLineHeight,
+    );
 
     pw.TextStyle maroonBold(double size) => pw.TextStyle(
-          font: _cachedLibreBold!,
-          fontSize: size,
-          color: _maroon,
-          height: 1.35,
-        );
+      font:      _cachedLibreBold!,
+      fontSize:  size,
+      color:     _maroon,
+      height:    PdfLayoutConstants.bodyLineHeight,
+    );
 
     pw.TextStyle rupee(double size) => pw.TextStyle(
-          font: _cachedTelugu!,
-          fontSize: size,
-          color: _darkBrown,
-        );
+      font:      _cachedTelugu!,
+      fontSize:  size,
+      color:     _darkBrown,
+    );
 
-    // ── Paragraph safe zone ───────────────────────────────────────────────
-    final bodyLeft = px(180);
-    final bodyWidth = px(900) - px(180);
+    // ── Layout values from constants ─────────────────────────────────────────
+    final bodyLeft  = px(PdfLayoutConstants.bodyX);
+    final bodyWidth = pageWidth - px(PdfLayoutConstants.bodyX) * 2;
 
-    // ── Responsive address font ───────────────────────────────────────────
+    // ── Address font size (auto-shrinks for long text) ────────────────────────
     final addressFontSize = address.length > 70
-        ? 8.0
+        ? PdfLayoutConstants.addressSizeLong
         : address.length > 50
-            ? 9.0
-            : 10.5;
+            ? PdfLayoutConstants.addressSizeMedium
+            : PdfLayoutConstants.addressSizeShort;
 
-    // ── Donation sentence ────────────────────────────────────────────────
-    final donationSentence =
-        donationType == 'Annadhanam Donation'
-            ? 'towards Annadhanam Donation at'
-            : 'towards Temple Donation at';
+    // ── Donation sentence ─────────────────────────────────────────────────────
+    final donationSentence = donationType == 'Annadhanam Donation'
+        ? 'towards Annadhanam Donation at'
+        : 'towards Temple Donation at';
 
     return pw.Stack(
       children: [
 
-        // ── Background Template ─────────────────────────────────────────
+        // ── Background template ───────────────────────────────────────────────
         pw.Positioned.fill(
-          child: pw.Image(
-            templateImage,
-            fit: pw.BoxFit.fill,
-          ),
+          child: pw.Image(templateImage, fit: pw.BoxFit.fill),
         ),
 
-        // ── Date ───────────────────────────────────────────────────────
+        // ── Date & Receipt row (horizontally centered) ────────────────────────
         pw.Positioned(
-          left: px(555),
-          bottom: py(780),
+          left:  0,
+          right: 0,
+          top:   py(PdfLayoutConstants.dateReceiptY),
           child: pw.Row(
-            mainAxisSize: pw.MainAxisSize.min,
+            mainAxisAlignment: pw.MainAxisAlignment.center,
             children: [
-              pw.Text(
-                'Date : ',
-                style: normal(10.5),
-              ),
-              pw.Text(
-                date,
-                style: bold(10.5),
-              ),
+              pw.Text('Date : ',        style: normal(PdfLayoutConstants.dateReceiptSize)),
+              pw.Text(date,             style: bold(PdfLayoutConstants.dateReceiptSize)),
+              pw.SizedBox(width: PdfLayoutConstants.dateReceiptGap),
+              pw.Text('Receipt No. : ', style: normal(PdfLayoutConstants.dateReceiptSize)),
+              pw.Text(receiptNo,        style: bold(PdfLayoutConstants.dateReceiptSize)),
             ],
           ),
         ),
 
-        // ── Receipt Number ─────────────────────────────────────────────
+        // ── Body paragraph ────────────────────────────────────────────────────
         pw.Positioned(
-          left: px(555),
-          bottom: py(820),
-          child: pw.Row(
-            mainAxisSize: pw.MainAxisSize.min,
-            children: [
-              pw.Text(
-                'Receipt No. : ',
-                style: normal(10.5),
-              ),
-              pw.Text(
-                receiptNo,
-                style: bold(10.5),
-              ),
-            ],
-          ),
-        ),
-
-        // ── Main Body Paragraph ────────────────────────────────────────
-        pw.Positioned(
-          left: bodyLeft,
-          bottom: py(1260),
+          left:  bodyLeft,
+          top:   py(PdfLayoutConstants.bodyY),
           child: pw.SizedBox(
             width: bodyWidth,
             child: pw.RichText(
               textAlign: pw.TextAlign.center,
               text: pw.TextSpan(
-                style: normal(10.5),
+                style: normal(PdfLayoutConstants.bodyNormalSize),
                 children: [
 
-                  // ── Intro ─────────────────────────────────────────
+                  // Intro
+                  pw.TextSpan(text: 'This is to acknowledge with gratitude that '),
                   pw.TextSpan(
-                    text:
-                        'This is to acknowledge with gratitude that ',
+                    text:  '$donorTitle $donorName',
+                    style: bold(PdfLayoutConstants.bodyBoldSize),
                   ),
 
+                  // Gothram & district
+                  pw.TextSpan(text: '\nof '),
                   pw.TextSpan(
-                    text: '$donorTitle $donorName',
-                    style: bold(11),
+                    text:  gothram.trim().isEmpty ? 'N/A' : gothram,
+                    style: bold(PdfLayoutConstants.bodyBoldSize),
                   ),
-
+                  pw.TextSpan(text: ' gothram, '),
                   pw.TextSpan(
-                    text: '\nof ',
+                    text:  district,
+                    style: bold(PdfLayoutConstants.bodyBoldSize),
                   ),
+                  pw.TextSpan(text: ', residing at\n'),
 
+                  // Address
                   pw.TextSpan(
-                    text:
-                        gothram.trim().isEmpty ? 'N/A' : gothram,
-                    style: bold(11),
-                  ),
-
-                  pw.TextSpan(
-                    text: ' gothram, ',
-                  ),
-
-                  pw.TextSpan(
-                    text: district,
-                    style: bold(11),
-                  ),
-
-                  pw.TextSpan(
-                    text: ', residing at\n',
-                  ),
-
-                  // ── Address ─────────────────────────────────────
-                  pw.TextSpan(
-                    text: address,
+                    text:  address,
                     style: bold(addressFontSize),
                   ),
 
-                  // ── Amount ──────────────────────────────────────
+                  // Amount
+                  pw.TextSpan(text: '\nhas devotedly donated '),
+                  pw.TextSpan(text: '\u20B9 ', style: rupee(PdfLayoutConstants.bodyRupeeSize)),
                   pw.TextSpan(
-                    text: '\n\nhas devotedly donated ',
+                    text:  '$amountFigures/-',
+                    style: bold(PdfLayoutConstants.bodyAmountSize),
                   ),
 
+                  // Amount in words
+                  pw.TextSpan(text: '\n(Rupees '),
                   pw.TextSpan(
-                    text: '\u20B9 ',
-                    style: rupee(12),
+                    text:  amountWords,
+                    style: bold(PdfLayoutConstants.bodyBoldSize),
+                  ),
+                  pw.TextSpan(text: ' Only) by way of '),
+                  pw.TextSpan(
+                    text:  paymentMethod,
+                    style: bold(PdfLayoutConstants.bodyBoldSize),
                   ),
 
+                  // Donation type
+                  pw.TextSpan(text: '\n$donationSentence '),
                   pw.TextSpan(
-                    text: '$amountFigures/-',
-                    style: bold(12),
+                    text:  'SRI ABHAYA ANJANEYA SWAMY DEVASTHANAM',
+                    style: maroonBold(PdfLayoutConstants.bodyMaroonSize),
                   ),
+                  pw.TextSpan(text: ',\nMidtur Village, Nandyal District.'),
 
-                  // ── Amount in words ─────────────────────────────
+                  // Blessing
                   pw.TextSpan(
-                    text: '\n(Rupees ',
-                  ),
-
-                  pw.TextSpan(
-                    text: '$amountWords Only',
-                    style: bold(11),
-                  ),
-
-                  pw.TextSpan(
-                    text: ') by way of ',
-                  ),
-
-                  pw.TextSpan(
-                    text: paymentMethod,
-                    style: bold(11),
-                  ),
-
-                  // ── Donation Type ───────────────────────────────
-                  pw.TextSpan(
-                    text: '\n$donationSentence ',
-                  ),
-
-                  pw.TextSpan(
-                    text:
-                        'SRI ABHAYA ANJANEYA SWAMY DEVASTHANAM',
-                    style: maroonBold(10.5),
-                  ),
-
-                  pw.TextSpan(
-                    text:
-                        ',\nMidtur Village, Nandyal District.',
-                  ),
-
-                  // ── Blessing ────────────────────────────────────
-                  pw.TextSpan(
-                    text:
-                        '\n\nWe pray to Sri Anjaneya Swamy to bless you and your family '
-                        'with health, happiness, prosperity and all divine blessings.',
+                    text: '\n\nWe pray to Sri Anjaneya Swamy to bless you and your family '
+                          'with health, happiness, prosperity and all divine blessings.',
                   ),
                 ],
               ),

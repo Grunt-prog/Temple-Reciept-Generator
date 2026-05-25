@@ -41,15 +41,11 @@ class _FormScreenState extends State<FormScreen> {
   static const _titles = [
     'Sri',
     'Smt',
-    'Kum',
-    'Dr. Sri',
-    'Dr. Smt'
   ];
 
   static const _payments = [
     'Cash',
     'PhonePe',
-    'Google Pay',
     'NEFT/RTGS',
     'Cheque',
     'DD'
@@ -322,6 +318,12 @@ class _FormScreenState extends State<FormScreen> {
                 ),
               ],
             ),
+
+            // ── Custom Title (if selected) ──────────────────────────
+            if (_donorTitle == 'Custom')
+              ...[
+                const SizedBox(height: 20),
+              ],
 
             const SizedBox(height: 20),
 
