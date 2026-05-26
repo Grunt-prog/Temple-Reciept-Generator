@@ -124,6 +124,15 @@ class PdfService {
       height:    PdfLayoutConstants.bodyLineHeight,
     );
 
+    pw.TextStyle maroonBoldUnderline(double size) => pw.TextStyle(
+      font:           _cachedLibreBold!,
+      fontSize:       size,
+      color:          _maroon,
+      height:         PdfLayoutConstants.bodyLineHeight,
+      decoration:     pw.TextDecoration.underline,
+      decorationStyle: pw.TextDecorationStyle.solid,
+    );
+
     pw.TextStyle rupee(double size) => pw.TextStyle(
       font:      _cachedTelugu!,
       fontSize:  size,
@@ -143,8 +152,8 @@ class PdfService {
 
     // ── Donation sentence ─────────────────────────────────────────────────────
     final donationSentence = donationType == 'Annadhanam Donation'
-        ? 'towards Annadhanam Donation at'
-        : 'towards Temple Donation at';
+        ? 'towards Annadhanam Donation to'
+        : 'towards Temple Donation to';
 
     return pw.Stack(
       children: [
@@ -196,17 +205,15 @@ class PdfService {
                     text:  gothram.trim().isEmpty ? 'N/A' : gothram,
                     style: bold(PdfLayoutConstants.bodyBoldSize),
                   ),
-                  pw.TextSpan(text: ' gothram, '),
-                  pw.TextSpan(
-                    text:  district,
-                    style: bold(PdfLayoutConstants.bodyBoldSize),
-                  ),
-                  pw.TextSpan(text: ', residing at\n'),
-
-                  // Address
+                  pw.TextSpan(text: ' Gothram, residing at '),
                   pw.TextSpan(
                     text:  address,
                     style: bold(addressFontSize),
+                  ),
+                  pw.TextSpan(text: ', '),
+                  pw.TextSpan(
+                    text:  district,
+                    style: bold(PdfLayoutConstants.bodyBoldSize),
                   ),
 
                   // Amount
@@ -230,12 +237,17 @@ class PdfService {
                   ),
 
                   // Donation type
-                  pw.TextSpan(text: '\n$donationSentence '),
+                  pw.TextSpan(text: '\n'),
+                  pw.TextSpan(
+                    text:  donationSentence,
+                    style: maroonBoldUnderline(PdfLayoutConstants.bodyMaroonSize + 0.5),
+                  ),
+                  pw.TextSpan(text: ' '),
                   pw.TextSpan(
                     text:  'SRI ABHAYA ANJANEYA SWAMY DEVASTHANAM',
                     style: maroonBold(PdfLayoutConstants.bodyMaroonSize),
                   ),
-                  pw.TextSpan(text: ',\nMidtur Village, Nandyal District.'),
+                  pw.TextSpan(text: '.'),
 
                   // Blessing
                   pw.TextSpan(

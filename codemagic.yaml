@@ -1,6 +1,6 @@
 workflows:
   android-ios-workflow:
-    name: Android & iOS Build
+    name: Android Build
 
     environment:
       flutter: stable
@@ -9,8 +9,6 @@ workflows:
     scripts:
       - flutter pub get
       - flutter build apk --release
-      - flutter build ipa --release
 
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
-      - build/ios/ipa/*.ipa
